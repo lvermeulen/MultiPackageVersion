@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <PackAsTool>true</PackAsTool>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <ToolCommandName>mpv</ToolCommandName>
+    <LangVersion>latest</LangVersion>
+    <StartupObject>MultiPackageVersion.Mpv.Program</StartupObject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.2.5" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MultiPackageVersion.Builders.Jenkins\MultiPackageVersion.Builders.Jenkins.csproj" />
+    <ProjectReference Include="..\MultiPackageVersion.Commands\MultiPackageVersion.Commands.csproj" />
+    <ProjectReference Include="..\MultiPackageVersion.Configuration\MultiPackageVersion.Config.csproj" />
+    <ProjectReference Include="..\MultiPackageVersion.Core\MultiPackageVersion.Core.csproj" />
+    <ProjectReference Include="..\MultiPackageVersion.Differs.Git\MultiPackageVersion.Differs.Git.csproj" />
+    <ProjectReference Include="..\MultiPackageVersion.SolutionReaders.Native\MultiPackageVersion.SolutionReaders.Native.csproj" />
+  </ItemGroup>
+
+</Project>

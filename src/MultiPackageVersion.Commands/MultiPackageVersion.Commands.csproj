@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Glob" Version="0.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MultiPackageVersion.Configuration\MultiPackageVersion.Config.csproj" />
+    <ProjectReference Include="..\MultiPackageVersion.Core\MultiPackageVersion.Core.csproj" />
+    <ProjectReference Include="..\MultiPackageVersion.Dependencies.NuGet\MultiPackageVersion.Dependencies.NuGet.csproj" />
+  </ItemGroup>
+
+</Project>
