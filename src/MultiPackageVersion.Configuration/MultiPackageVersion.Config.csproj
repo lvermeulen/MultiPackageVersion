@@ -9,4 +9,8 @@
     <PackageReference Include="SemanticVersioning" Version="1.2.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\MultiPackageVersion.Core\MultiPackageVersion.Core.csproj" />
+  </ItemGroup>
+
 </Project>

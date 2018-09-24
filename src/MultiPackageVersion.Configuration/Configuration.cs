@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using MultiPackageVersion.Core;
 using Newtonsoft.Json;
 
 namespace MultiPackageVersion.Config
 {
-    public class Configuration
+    public class Configuration : IConfiguration
     {
         public static Configuration Load(string fileName)
         {

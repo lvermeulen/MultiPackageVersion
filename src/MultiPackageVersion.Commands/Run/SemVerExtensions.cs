@@ -1,4 +1,4 @@
-﻿using MultiPackageVersion.Config;
+﻿using MultiPackageVersion.Core;
 using SemVer;
 
 namespace MultiPackageVersion.Commands.Run

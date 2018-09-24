@@ -1,4 +1,5 @@
 using System;
+using MultiPackageVersion.Commands.Init;
 using MultiPackageVersion.Core;
 
 namespace MultiPackageVersion.Mpv.Commands
@@ -9,8 +10,8 @@ namespace MultiPackageVersion.Mpv.Commands
         {
             Console.WriteLine("Initializing:");
             var command = new MultiPackageVersion.Commands.Init.InitCommand();
-            (bool success, string output) = command.Execute();
-            Console.WriteLine(output);
+            (bool success, InitContext initContext) = command.Execute();
+            Console.WriteLine(initContext.Message);
 
             return success
                 ? 0

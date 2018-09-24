@@ -1,7 +1,7 @@
 ﻿using System;
 using Newtonsoft.Json;
 
-namespace MultiPackageVersion.Config
+namespace MultiPackageVersion.Core
 {
     public abstract class JsonEnumConverter<TEnum> : JsonConverter
         where TEnum : struct, IConvertible

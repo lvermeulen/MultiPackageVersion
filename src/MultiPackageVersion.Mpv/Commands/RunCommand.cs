@@ -26,9 +26,11 @@ namespace MultiPackageVersion.Mpv.Commands
             var differ = new GitStatusDiffer(_gitPath);
 
             console.WriteLine("Files modified:");
-            var command = new MultiPackageVersion.Commands.Run.RunCommand(solutionReader, differ, null);
+            var command = new MultiPackageVersion.Commands.Run.RunCommand(solutionReader, differ);
             (bool success, var results) = command.Execute(Configuration.Load("mpv.config"));
             results
+                .UpdatedFiles
+                .Select(x => $"{x.Key}\t{x.Value}")
                 .ToList()
                 .ForEach(x => console.WriteLine($"{x}"));
 

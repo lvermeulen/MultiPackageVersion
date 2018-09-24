@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using MultiPackageVersion.Core;
 using Xunit;
 
 namespace MultiPackageVersion.Config.Tests
@@ -16,7 +17,6 @@ namespace MultiPackageVersion.Config.Tests
                 {
                     ["Libraries\\*"] = new VersionConfiguration
                     {
-                        Version = "1.2.3",
                         VersionIncrement = VersionIncrementType.Major,
                         VersionConfigurationEntries = new List<VersionConfigurationEntry>
                         {
@@ -30,7 +30,6 @@ namespace MultiPackageVersion.Config.Tests
                     },
                     ["Workflow\\Workflow.Domain.*"] = new VersionConfiguration
                     {
-                        Version = "4.5.6",
                         VersionIncrement = VersionIncrementType.Minor,
                         VersionConfigurationEntries = new List<VersionConfigurationEntry>
                         {
@@ -50,7 +49,6 @@ namespace MultiPackageVersion.Config.Tests
                     },
                     ["Workflow\\Workflow.Application.*"] = new VersionConfiguration
                     {
-                        Version = "5.6.7",
                         VersionIncrement = VersionIncrementType.Patch,
                         VersionConfigurationEntries = new List<VersionConfigurationEntry>
                         {

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using MultiPackageVersion.Commands.Run;
 using MultiPackageVersion.Config;
@@ -13,10 +12,9 @@ namespace MultiPackageVersion.Commands.Tests
 {
     public class RunCommandShould
     {
-        private readonly ICommand<Configuration, (bool, IEnumerable<string>)> _command = new RunCommand(
+        private readonly ICommand<Configuration, (bool, RunContext)> _command = new RunCommand(
             new NativeSolutionReader(),
-            new GitStatusDiffer(@"C:\Program Files\Git\bin\git.exe"),
-            null
+            new GitStatusDiffer(@"C:\Program Files\Git\bin\git.exe")
         );
 
         private readonly ITestOutputHelper _testOutputHelper;
@@ -34,10 +32,12 @@ namespace MultiPackageVersion.Commands.Tests
             {
                 var configuration = Configuration.Load("mpv.config");
                 (bool success, var results) = _command.Execute(configuration);
-                var resultList = results.ToList();
+                var updatedFiles = results
+                    .UpdatedFiles
+                    .ToList();
                 Assert.True(success);
-                Assert.NotEmpty(resultList);
-                _testOutputHelper.WriteLine(string.Join(Environment.NewLine, resultList));
+                Assert.NotEmpty(updatedFiles);
+                _testOutputHelper.WriteLine(string.Join(Environment.NewLine, updatedFiles));
             }
         }
     }

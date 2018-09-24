@@ -26,11 +26,11 @@ namespace MultiPackageVersion.Mpv.Commands
             var differ = new GitStatusDiffer(_gitPath);
 
             console.WriteLine("Build definitions affected:");
-            var command = new MultiPackageVersion.Commands.Build.BuildCommand(solutionReader, differ, null);
-            (bool success, var results) = command.Execute(Configuration.Load("mpv.config"));
-            results
+            var command = new MultiPackageVersion.Commands.Build.BuildCommand(solutionReader, differ);
+            (bool success, var buildContext) = command.Execute(Configuration.Load("mpv.config"));
+            buildContext.VersionConfigurationEntries
                 .ToList()
-                .ForEach(x => console.WriteLine(x.Key));
+                .ForEach(x => console.WriteLine(x.BuildDefinitionName));
 
             return success
                 ? 0

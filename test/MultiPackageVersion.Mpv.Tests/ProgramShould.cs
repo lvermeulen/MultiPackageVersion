@@ -53,5 +53,5 @@ namespace MultiPackageVersion.Mpv.Tests
 
             Assert.Null(ex);
         }
-}
+    }
 }

@@ -1,23 +1,29 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using MultiPackageVersion.Config;
 using MultiPackageVersion.Core;
+using Void = MultiPackageVersion.Core.Void;
 
 namespace MultiPackageVersion.Commands.Init
 {
-    public class InitCommand : ICommand<Void, (bool, string)>
+    public class InitCommand : ICommand<Void, (bool, InitContext)>
     {
-        public (bool, string) Execute(Void t = default(Void))
+        public (bool, InitContext) Execute(Void t = default(Void))
         {
             const string FILENAME = "mpv.config";
+
+            var result = new InitContext { FolderName = Environment.CurrentDirectory };
             if (File.Exists(FILENAME))
             {
-                return (false, $"File {FILENAME} already exists.");
+                result.Message = $"File {FILENAME} already exists.";
+                return (false, result);
             }
 
             var config = new Configuration();
             config.Save(FILENAME);
 
-            return (true, $"File {FILENAME} was created.");
+            result.Message = $"File {FILENAME} was created.";
+            return (true, result);
         }
     }
 }

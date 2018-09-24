@@ -10,28 +10,24 @@ using Version = SemVer.Version;
 
 namespace MultiPackageVersion.Commands.Run
 {
-    public class RunCommand : ICommand<Configuration, (bool, IEnumerable<string>)>
+    public class RunCommand : ICommand<IConfiguration, (bool, RunContext)>
     {
         private readonly ISolutionReader _solutionReader;
         private readonly IDiffer _differ;
-        private readonly IOutputFormatter<KeyValuePair<string, string>, KeyValuePair<string, string>> _formatter;
+        private readonly RunContext _context;
 
-        public RunCommand(ISolutionReader solutionReader, IDiffer differ, IOutputFormatter<KeyValuePair<string, string>, KeyValuePair<string, string>> formatter)
+        public RunCommand(ISolutionReader solutionReader, IDiffer differ)
         {
             _solutionReader = solutionReader;
             _differ = differ;
-            _formatter = formatter;
+            _context = new RunContext { FolderName = Environment.CurrentDirectory };
         }
 
-        private IEnumerable<string> GetAffectedNuspecFiles(IEnumerable<KeyValuePair<string, string>> buildDefinitionNames) => 
-            buildDefinitionNames.Select(x => x.Value);
-
-        private IDictionary<string, VersionIncrementType> GetNuspecVersionIncrementMap(Configuration configuration)
+        private IDictionary<string, VersionIncrementType> GetNuspecVersionIncrementMap(IConfiguration configuration)
         {
             var result = configuration
                 .Entries
                 .Values
-                //.Where(x => nuspecFiles.Any(nuSpecFileName => x.VersionConfigurationEntries.Any(entry => entry.NuspecFileName.Equals(nuSpecFileName, StringComparison.OrdinalIgnoreCase))))
                 .Select(x => new
                 {
                     NuSpecFileName = x.VersionConfigurationEntries.Select(entry => entry.NuspecFileName).FirstOrDefault(),
@@ -42,7 +38,7 @@ namespace MultiPackageVersion.Commands.Run
             return result;
         }
 
-        private string FindNuspecFileName(string consumingFileName, string rootFolderName)
+        private string FindNuspecFileName(string consumingFileName)
         {
             string folderName = Path.GetDirectoryName(consumingFileName);
             string pathRoot;
@@ -57,26 +53,29 @@ namespace MultiPackageVersion.Commands.Run
                 }
 
                 folderName = new DirectoryInfo(folderName).Parent?.FullName;
-            } while (folderName != null && pathRoot != rootFolderName);
+            } while (folderName != null && pathRoot != _context.FolderName);
 
             return null;
         }
 
-        private IEnumerable<KeyValuePair<string, IEnumerable<Dependency>>> FindConsumingFiles(string rootFolderName)
+        private IList<KeyValuePair<string, IEnumerable<Dependency>>> FindConsumingFilesWithDependencies()
         {
-            var nugetReader = new NuGetReader(rootFolderName);
+            var nugetReader = new NuGetReader(_context.FolderName);
             var fileDependencies = nugetReader.Read();
-            return fileDependencies.Select(x => new KeyValuePair<string, IEnumerable<Dependency>>(x.FileName, x.Dependencies));
+            return fileDependencies
+                .Select(x => new KeyValuePair<string, IEnumerable<Dependency>>(x.FileName, x.Dependencies))
+                .ToList();
         }
 
-        private IEnumerable<string> FindConsumingFilesUsing(string packageId, IEnumerable<KeyValuePair<string, IEnumerable<Dependency>>> allConsumingFiles)
+        private IList<string> FindConsumingFilesUsing(string packageId, IEnumerable<KeyValuePair<string, IEnumerable<Dependency>>> allConsumingFiles)
         {
             return allConsumingFiles
                 .Where(x => x.Value.Any(dependency => dependency.Id.Equals(packageId, StringComparison.OrdinalIgnoreCase)))
-                .Select(x => x.Key);
+                .Select(x => x.Key)
+                .ToList();
         }
 
-        private IEnumerable<string> GetConsumingFiles(IEnumerable<string> nuspecFileNames , IEnumerable<KeyValuePair<string, IEnumerable<Dependency>>> allConsumingFiles, string folderName)
+        private List<string> GetConsumingFiles(IEnumerable<string> nuspecFileNames, IEnumerable<KeyValuePair<string, IEnumerable<Dependency>>> allConsumingFiles)
         {
             var nuspecFileNamesList = nuspecFileNames.ToList();
             var consumingFiles = new List<string>();
@@ -89,7 +88,7 @@ namespace MultiPackageVersion.Commands.Run
                         results.Add(x);
                         var nuspecFile = new NuspecFile(x);
                         consumingFiles = FindConsumingFilesUsing(nuspecFile.Id, allConsumingFiles)
-                            .Select(consumingFile => FindNuspecFileName(consumingFile, folderName))
+                            .Select(FindNuspecFileName)
                             .ToList();
 
                         results.AddRange(consumingFiles);
@@ -97,23 +96,23 @@ namespace MultiPackageVersion.Commands.Run
             } while (consumingFiles.Any());
 
             return results
-                .Distinct();
+                .Distinct()
+                .ToList();
         }
 
-        private IEnumerable<KeyValuePair<string, string>> UpdateConsumingFiles(IEnumerable<string> nuspecFileNames, IDictionary<string, VersionIncrementType> nuspecVersionIncrementMap, IEnumerable<KeyValuePair<string, IEnumerable<Dependency>>> allConsumingFiles, string folderName, VersionIncrementType defaultVersionIncrement)
+        private IEnumerable<KeyValuePair<string, string>> UpdateConsumingFiles(IEnumerable<string> nuspecFileNames, IEnumerable<KeyValuePair<string, IEnumerable<Dependency>>> allConsumingFiles, VersionIncrementType defaultVersionIncrement)
         {
-            var dependencies = GetConsumingFiles(nuspecFileNames.ToList(), allConsumingFiles.ToList(), folderName);
+            var dependencies = GetConsumingFiles(nuspecFileNames, allConsumingFiles);
 
             var results = new List<KeyValuePair<string, string>>();
             var nuGetWriter = new NuGetWriter();
             dependencies
-                .ToList()
                 .ForEach(x =>
                 {
                     // update nuspec file
                     var nuspecFile = new NuspecFile(x);
-                    var versionIncrement = nuspecVersionIncrementMap.ContainsKey(x)
-                        ? nuspecVersionIncrementMap[x]
+                    var versionIncrement = _context.NuspecVersionIncrementMap.ContainsKey(x)
+                        ? _context.NuspecVersionIncrementMap[x]
                         : defaultVersionIncrement;
                     string newVersion = new Version(nuspecFile.Version, true)
                         .Increment(versionIncrement)
@@ -125,7 +124,7 @@ namespace MultiPackageVersion.Commands.Run
             return results;
         }
 
-        public (bool, IEnumerable<string>) Execute(Configuration t = default(Configuration))
+        public (bool, RunContext) Execute(IConfiguration t = default(Configuration))
         {
             if (t == default(Configuration))
             {
@@ -134,49 +133,55 @@ namespace MultiPackageVersion.Commands.Run
 
             if (!t.Entries.Any())
             {
-                return (false, Enumerable.Repeat("No configuration entries", 1));
+                _context.Message = "No configuration entries";
+                return (false, _context);
             }
+
+            _context.Configuration = t;
 
             // run build command
-            var buildCommand = new BuildCommand(_solutionReader, _differ, _formatter);
-            (bool success, var buildOutputFiles) = buildCommand.Execute(t);
+            var buildCommand = new BuildCommand(_solutionReader, _differ, _context);
+            (bool success, var buildContext) = buildCommand.Execute(_context.Configuration);
             if (!success)
             {
-                return (false, Enumerable.Repeat("Build command failed", 1));
+                _context.Message = "Build command failed";
+                return (false, _context);
             }
 
-            string folderName = Environment.CurrentDirectory;
-            var allConsumingFiles = FindConsumingFiles(folderName)
+            // find dependencies
+            var affectedNuspecFiles = buildContext.VersionConfigurationEntries
+                .Select(x => x.NuspecFileName)
                 .ToList();
 
-            // find dependencies
-            var nuspecFiles = GetAffectedNuspecFiles(buildOutputFiles)
-                .ToList();
-            var nuspecVersionIncrementMap = GetNuspecVersionIncrementMap(t);
+            _context.NuspecVersionIncrementMap = GetNuspecVersionIncrementMap(t);
+            var allConsumingFiles = FindConsumingFilesWithDependencies();
 
             // get all consumers using each nuspecFile
-            var results = new List<string>();
-            foreach (string nuspecFileName in nuspecFiles)
+            var consumers = new List<string>();
+            foreach (string nuspecFileName in affectedNuspecFiles)
             {
-                results.Add(nuspecFileName);
+                consumers.Add(nuspecFileName);
                 var nuspecFile = new NuspecFile(nuspecFileName);
                 string nuspecPackageId = nuspecFile.Id;
                 var consumingFiles = FindConsumingFilesUsing(nuspecPackageId, allConsumingFiles);
 
                 // get all nuspec files for each consuming file
-                var nuspecFileNames = consumingFiles.Select(consumingFile => FindNuspecFileName(consumingFile, folderName));
-                results.AddRange(nuspecFileNames);
+                var nuspecFileNames = consumingFiles.Select(FindNuspecFileName);
+                consumers.AddRange(nuspecFileNames);
             }
 
-            results = results
+            consumers = consumers
                 .Where(x => x != null)
                 .Distinct()
                 .ToList();
 
             // update all nuspec files
-            var updatedFiles = UpdateConsumingFiles(results, nuspecVersionIncrementMap, allConsumingFiles, folderName, t.DefaultVersionIncrement);
+            var updatedFiles = UpdateConsumingFiles(consumers, allConsumingFiles, t.DefaultVersionIncrement);
 
-            return (true, updatedFiles.Select(x => $"{x.Key}\t{x.Value}"));
+            return (true, new RunContext
+            {
+                UpdatedFiles = updatedFiles
+            });
         }
     }
 }

@@ -8,20 +8,22 @@ using MultiPackageVersion.Core;
 
 namespace MultiPackageVersion.Commands.Build
 {
-    public class BuildCommand : ICommand<Configuration, (bool, IEnumerable<KeyValuePair<string, string>>)>
+    public class BuildCommand : ICommand<IConfiguration, (bool, BuildContext)>
     {
         private readonly ISolutionReader _solutionReader;
         private readonly IDiffer _differ;
-        private readonly IOutputFormatter<KeyValuePair<string, string>, KeyValuePair<string, string>> _formatter;
+        private readonly BuildContext _context;
 
-        public BuildCommand(ISolutionReader solutionReader, IDiffer differ, IOutputFormatter<KeyValuePair<string, string>, KeyValuePair<string, string>> formatter)
+        public BuildCommand(ISolutionReader solutionReader, IDiffer differ, IContext context = null)
         {
             _solutionReader = solutionReader;
             _differ = differ;
-            _formatter = formatter;
+            _context = context != null
+                ? new BuildContext { FolderName = context.FolderName }
+                : new BuildContext { FolderName = Environment.CurrentDirectory };
         }
 
-        public (bool, IEnumerable<KeyValuePair<string, string>>) Execute(Configuration t = default(Configuration))
+        public (bool, BuildContext) Execute(IConfiguration t = default(Configuration))
         {
             if (t == default(Configuration))
             {
@@ -30,25 +32,26 @@ namespace MultiPackageVersion.Commands.Build
 
             if (!t.Entries.Any())
             {
-                return (false, Enumerable.Repeat(new KeyValuePair<string, string>("", ""), 1));
+                _context.Message = "No configuration entries";
+                return (false, _context);
             }
 
-            var results = new List<KeyValuePair<string, string>>();
-            string folderName = Environment.CurrentDirectory;
+            _context.Configuration = t;
+            var versionConfigurationEntries = new List<VersionConfigurationEntry>();
 
             // find file differences
-            var differences = _differ.Diff(folderName)
+            _context.Differences = _differ.Diff(_context.FolderName)
                 .Select(x => x.FileName)
                 .ToList();
 
             foreach (string globSpec in t.Entries.Keys)
             {
                 // localize differences to current glob
-                var globFolders = new DirectoryInfo(folderName)
+                var globFolders = new DirectoryInfo(_context.FolderName)
                     .GlobDirectories(globSpec)
                     .Select(x => x.FullName)
                     .ToList();
-                var localDifferences = differences
+                var localDifferences = _context.Differences
                     .WhereSubPathOfAnyFolderName(globFolders.ToArray())
                     .ToList();
                 if (!localDifferences.Any())
@@ -61,19 +64,19 @@ namespace MultiPackageVersion.Commands.Build
                 foreach (var versionConfigurationEntry in versionConfiguration.VersionConfigurationEntries)
                 {
                     // read solution file
-                    var filesInSolution = _solutionReader.ReadFileNames(Path.Combine(folderName, versionConfigurationEntry.SolutionFileName));
+                    var filesInSolution = _solutionReader.ReadFileNames(Path.Combine(_context.FolderName, versionConfigurationEntry.SolutionFileName));
                     if (filesInSolution.Intersect(localDifferences).Any())
                     {
-                        results.Add(new KeyValuePair<string, string>(versionConfigurationEntry.BuildDefinitionName, versionConfigurationEntry.NuspecFileName));
+                        versionConfigurationEntries.Add(versionConfigurationEntry);
                     }
                 }
             }
 
-            results = results
+            _context.VersionConfigurationEntries = versionConfigurationEntries
                 .Distinct()
                 .ToList();
 
-            return (true, results);
+            return (true, _context);
         }
     }
 }

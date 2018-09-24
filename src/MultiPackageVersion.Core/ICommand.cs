@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MultiPackageVersion.Core
+﻿namespace MultiPackageVersion.Core
 {
     public interface ICommand
     {

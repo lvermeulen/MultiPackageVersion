@@ -1,4 +1,3 @@
-using System;
 using McMaster.Extensions.CommandLineUtils;
 using MultiPackageVersion.Core;
 

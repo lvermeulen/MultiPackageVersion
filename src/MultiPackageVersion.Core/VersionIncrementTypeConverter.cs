@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MultiPackageVersion.Config
+namespace MultiPackageVersion.Core
 {
     public class VersionIncrementTypeConverter : JsonEnumConverter<VersionIncrementType>
     {

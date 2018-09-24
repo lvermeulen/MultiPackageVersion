@@ -1,4 +1,4 @@
-﻿namespace MultiPackageVersion.Config
+﻿namespace MultiPackageVersion.Core
 {
     public class VersionConfigurationEntry
     {
