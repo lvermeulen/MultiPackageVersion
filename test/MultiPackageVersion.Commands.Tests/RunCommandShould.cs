@@ -12,11 +12,6 @@ namespace MultiPackageVersion.Commands.Tests
 {
     public class RunCommandShould
     {
-        private readonly ICommand<Configuration, (bool, RunContext)> _command = new RunCommand(
-            new NativeSolutionReader(),
-            new GitStatusDiffer(@"C:\Program Files\Git\bin\git.exe")
-        );
-
         private readonly ITestOutputHelper _testOutputHelper;
 
         public RunCommandShould(ITestOutputHelper testOutputHelper)
@@ -30,8 +25,9 @@ namespace MultiPackageVersion.Commands.Tests
         {
             using (new WithCurrentDirectory(folderName))
             {
+                var command = new RunCommand(new NativeSolutionReader(), new GitStatusDiffer(@"C:\Program Files\Git\bin\git.exe"));
                 var configuration = Configuration.Load("mpv.config");
-                (bool success, var results) = _command.Execute(configuration);
+                (bool success, var results) = command.Execute(configuration);
                 var updatedFiles = results
                     .UpdatedFiles
                     .ToList();
