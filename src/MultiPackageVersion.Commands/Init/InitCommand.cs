@@ -25,9 +25,11 @@ namespace MultiPackageVersion.Commands.Init
             }
 
             string nuspecFileNameWithoutExtension = Path.GetFileNameWithoutExtension(nuspecFileName);
+            string nuspecFolder = Path.GetDirectoryName(nuspecFileName);
+            string lastPartOfNuspecFolder = Path.GetFileName(nuspecFolder);
             var solutionFileNames = FindSolutionFileNames(_context.FolderName);
 
-            // find file with same filename
+            // find solution file with same filename
             // ReSharper disable once PossibleNullReferenceException
             string result = solutionFileNames.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x).Equals(nuspecFileNameWithoutExtension, StringComparison.InvariantCultureIgnoreCase));
             if (result != null)
@@ -35,7 +37,7 @@ namespace MultiPackageVersion.Commands.Init
                 return result;
             }
 
-            // find file containing filename
+            // find solution file containing filename
             // ReSharper disable once AssignNullToNotNullAttribute
             // ReSharper disable once PossibleNullReferenceException
             result = solutionFileNames.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x).Contains(nuspecFileNameWithoutExtension));
@@ -46,7 +48,30 @@ namespace MultiPackageVersion.Commands.Init
 
             // find first solution file from nuspec folder
             // ReSharper disable once AssignNullToNotNullAttribute
-            solutionFileNames = FindSolutionFileNames(Path.GetDirectoryName(nuspecFileName));
+            // ReSharper disable once PossibleNullReferenceException
+            result = FindSolutionFileNames(nuspecFolder).FirstOrDefault();
+            if (result != null)
+            {
+                return result;
+            }
+
+            // find solution file from last part of nuspec folder
+            // ReSharper disable once PossibleNullReferenceException
+            result = solutionFileNames.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x).Equals(lastPartOfNuspecFolder, StringComparison.InvariantCultureIgnoreCase));
+            if (result != null)
+            {
+                return result;
+            }
+
+            // find solution file containing last part of nuspec folder
+            // ReSharper disable once AssignNullToNotNullAttribute
+            // ReSharper disable once PossibleNullReferenceException
+            result = solutionFileNames.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x).Contains(lastPartOfNuspecFolder));
+            if (result != null)
+            {
+                return result;
+            }
+
             return solutionFileNames.FirstOrDefault() ?? "";
         }
 
