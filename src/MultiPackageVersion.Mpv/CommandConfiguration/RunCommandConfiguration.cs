@@ -8,7 +8,7 @@ namespace MultiPackageVersion.Mpv.CommandConfiguration
     {
         public static void Configure(CommandLineApplication command, CommandLineOptions options, IServiceProvider serviceProvider)
         {
-            command.Description = "An example command from the neat .NET Core Starter";
+            command.Description = "Runs all updates";
             command.HelpOption("--help|-h|-?");
 
             var gitPath = command.Option("-g|--git", "Path to git.exe", CommandOptionType.SingleValue);

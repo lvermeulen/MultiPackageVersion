@@ -12,7 +12,7 @@ namespace MultiPackageVersion.Commands.Tests
         {
             using (new WithCurrentDirectory(folderName))
             {
-                var command = new InitCommand();
+                var command = new InitCommand(@"C:\Program Files\Git\bin\git.exe");
                 command.Execute();
             }
         }

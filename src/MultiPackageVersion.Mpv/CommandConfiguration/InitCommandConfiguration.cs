@@ -8,6 +8,9 @@ namespace MultiPackageVersion.Mpv.CommandConfiguration
         public static void Configure(CommandLineApplication command, CommandLineOptions options)
         {
             command.Description = "Initializes the current directory";
+            command.HelpOption("--help|-h|-?");
+
+            var gitPath = command.Option("-g|--git", "Path to git.exe", CommandOptionType.SingleValue);
 
             command.OnExecute(() =>
             {

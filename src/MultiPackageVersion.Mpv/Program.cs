@@ -1,4 +1,5 @@
 ﻿using McMaster.Extensions.CommandLineUtils;
+using McMaster.Extensions.CommandLineUtils.HelpText;
 using Microsoft.Extensions.DependencyInjection;
 using MultiPackageVersion.Builders.Jenkins;
 using MultiPackageVersion.Core;
@@ -23,6 +24,7 @@ namespace MultiPackageVersion.Mpv
         public static int Main(string[] args)
         {
             var serviceProvider = ConfigureServices();
+            DefaultHelpTextGenerator.Singleton.SortCommandsByName = false;
 
             var options = CommandLineOptions.Parse(serviceProvider, args);
             return options?.Command?.Execute() ?? 1;

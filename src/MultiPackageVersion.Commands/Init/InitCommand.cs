@@ -11,10 +11,12 @@ namespace MultiPackageVersion.Commands.Init
     public class InitCommand : ICommand<Void, (bool, InitContext)>
     {
         private readonly InitContext _context;
+        private readonly string _gitPath;
 
-        public InitCommand()
+        public InitCommand(string gitPath)
         {
             _context = new InitContext { FolderName = Environment.CurrentDirectory };
+            _gitPath = gitPath;
         }
 
         private string FindSolutionFileName(string nuspecFileName)
