@@ -83,6 +83,20 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MultiPackageVersion.Formatt
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MultiPackageVersion.Formatters.Build.JsonBuildOutput.Tests", "test\MultiPackageVersion.Formatters.Build.JsonBuildOutput.Tests\MultiPackageVersion.Formatters.Build.JsonBuildOutput.Tests.csproj", "{7ED06395-BE51-4B54-9785-B0EFC21EC900}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "..Build", "..Build", "{9CA58084-882A-4B3C-9DE2-B7283522502D}"
+	ProjectSection(SolutionItems) = preProject
+		build\build.ps1 = build\build.ps1
+		build\test.ps1 = build\test.ps1
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "..Solution Items", "..Solution Items", "{BA78B2BE-781A-4929-BD39-3F79657C74F1}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		appveyor.yml = appveyor.yml
+		global.json = global.json
+		LICENSE = LICENSE
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
